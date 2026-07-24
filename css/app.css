@@ -1,0 +1,55 @@
+/* Standalone-app overrides.
+   Keeps css/styles.css and css/mortgage-calculator.css byte-identical to the
+   buildwithbaker source so they can be re-synced without a merge. */
+
+/* The parent site's nav collapses behind a hamburger under 768px, driven by
+   nav.js. This app ships a two-item nav instead, so keep it visible always. */
+@media (max-width: 768px) {
+  .nav-links-standalone { display: flex; }
+}
+
+.nav-links-standalone {
+  gap: 1rem;
+}
+
+/* #installBtn is a <button> wearing .btn-nav, which was written for <a>. */
+#installBtn {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+#installBtn[hidden] {
+  display: none;
+}
+
+/* Offline / update notice */
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 200;
+  max-width: min(30rem, calc(100vw - 2rem));
+  padding: .7rem 1.1rem;
+  border-radius: var(--radius);
+  background: var(--color-footer-bg);
+  color: #fff;
+  border: 1px solid var(--color-border);
+  font-size: .875rem;
+  box-shadow: var(--shadow-md);
+}
+
+.app-toast[hidden] {
+  display: none;
+}
+
+@media print {
+  .site-nav,
+  .site-footer,
+  .app-toast {
+    display: none !important;
+  }
+}

@@ -1,0 +1,19 @@
+# This is a plain static site — no build step, nothing to compile.
+
+node_modules/
+*.local
+
+# Local Claude Code preview config
+.claude/
+
+.DS_Store
+Thumbs.db
+
+.env
+.env.local
+.env.*.local
+
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp

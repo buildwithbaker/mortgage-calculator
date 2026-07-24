@@ -1,0 +1,35 @@
+{
+  "name": "Mortgage Calculator",
+  "short_name": "Mortgage",
+  "description": "Estimate your monthly payment, debt-to-income ratios, closing costs, PMI drop-off, and how extra payments shorten your loan. Runs entirely in your browser.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#2B4A8B",
+  "background_color": "#ffffff",
+  "categories": ["finance", "utilities"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

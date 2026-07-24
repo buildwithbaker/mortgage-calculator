@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; object-src 'none'" />
+  <title>Mortgage Calculator | Build with Baker</title>
+  <meta name="description" content="Free home affordability calculator. Estimate your monthly payment, debt-to-income ratios, closing costs, PMI drop-off, and how extra payments shorten your loan. No login, no tracking." />
+  <meta name="theme-color" content="#2B4A8B" />
+  <meta property="og:title" content="Home Affordability Calculator | Build with Baker" />
+  <meta property="og:description" content="Estimate your real monthly payment, DTI ratios, closing costs, and payoff timeline. Free, private, runs in your browser." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mortgage.buildwithbaker.io/" />
+  <meta property="og:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png?v=1" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Home Affordability Calculator by Build with Baker" />
+  <meta property="og:site_name" content="Build with Baker" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@BuildwithBaker" />
+  <meta name="twitter:creator" content="@BuildwithBaker" />
+  <meta name="twitter:title" content="Home Affordability Calculator | Build with Baker" />
+  <meta name="twitter:description" content="Free home affordability calculator - payment, DTI, closing costs, PMI drop-off, extra-payment payoff." />
+  <meta name="twitter:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png" />
+  <link rel="canonical" href="https://mortgage.buildwithbaker.io/" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/mortgage-calculator.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="images/icon-192.png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Mortgage" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <script defer src="js/mortgage-calculator.js"></script>
+  <script defer src="js/app.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Home Affordability Calculator",
+    "url": "https://mortgage.buildwithbaker.io/",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "publisher": { "@type": "Person", "name": "Adam Baker", "url": "https://buildwithbaker.io/" }
+  }
+  </script>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <nav class="site-nav" aria-label="Main navigation">
+    <div class="container nav-inner">
+      <a href="./" class="nav-logo">Mortgage Calculator</a>
+      <ul class="nav-links nav-links-standalone" id="primary-nav">
+        <li><button type="button" class="btn-nav" id="installBtn" hidden>Install app</button></li>
+        <li><a href="https://buildwithbaker.io/products" rel="noopener">More tools</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="main">
+
+  <section class="content-section">
+    <div class="container">
+      <div class="tool-header">
+        <div class="tool-header-top">
+          <span class="tool-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 10.6 L12 3 L21 10.6"/>
+              <path d="M5.2 9.8 V21 H18.8 V9.8"/>
+              <rect x="8" y="12.4" width="8" height="2.8" rx="0.7"/>
+              <line x1="9" y1="18.2" x2="9" y2="18.2"/>
+              <line x1="12" y1="18.2" x2="12" y2="18.2"/>
+              <line x1="15" y1="18.2" x2="15" y2="18.2"/>
+            </svg>
+          </span>
+          <div class="tool-header-head">
+            <span class="tool-eyebrow"><a href="https://buildwithbaker.io/products" rel="noopener">Build with Baker</a> / Home Affordability Calculator</span>
+            <h1>Home Affordability Calculator</h1>
+          </div>
+        </div>
+        <p class="tool-tagline">
+          Estimate your real monthly payment, debt-to-income ratios, closing costs, when PMI
+          drops off, and how extra payments shorten the loan. Runs in your browser -
+          no login, no tracking, your numbers never leave your device.
+        </p>
+        <div class="tool-chips">
+          <span class="tool-chip"><span class="dot"></span>Free</span>
+          <span class="tool-chip"><span class="dot"></span>No login</span>
+          <span class="tool-chip"><span class="dot"></span>Runs in your browser</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="container">
+      <div class="mc">
+
+        <div class="tool-actions">
+          <button type="button" class="qbtn" id="printBtn">Print / Save PDF</button>
+          <button type="button" class="qbtn" id="downloadBtn">Download summary</button>
+          <button type="button" class="reset-link" id="resetDefaults">Reset my defaults</button>
+        </div>
+
+        <form class="mc-grid" id="calc" novalidate aria-label="Affordability inputs and results">
+          <!-- INPUTS -->
+          <div class="card">
+            <h2 class="bar">Your numbers</h2>
+            <fieldset>
+              <legend>Loan</legend>
+
+              <label for="price">Home price <span class="hint">$</span></label>
+              <input type="number" id="price" value="350000" step="1000" min="0" inputmode="decimal" aria-describedby="priceR">
+              <input type="range" id="priceR" min="100000" max="600000" step="5000" value="350000" aria-label="Home price slider">
+
+              <label for="down">Down payment <span class="hint">enter $ or %</span></label>
+              <div class="dp-row">
+                <input type="number" id="down" value="35000" step="500" min="0" inputmode="decimal" aria-label="Down payment in dollars">
+                <input type="number" id="downP" value="10" step="0.5" min="0" inputmode="decimal" aria-label="Down payment percent">
+              </div>
+              <input type="range" id="downR" min="0" max="120000" step="1000" value="35000" aria-label="Down payment slider">
+              <div class="qrow" aria-label="Quick down payment percents">
+                <button type="button" class="qbtn" data-pct="3.5">3.5%</button>
+                <button type="button" class="qbtn" data-pct="5">5%</button>
+                <button type="button" class="qbtn" data-pct="10">10%</button>
+                <button type="button" class="qbtn" data-pct="20">20%</button>
+              </div>
+
+              <label for="rate">Interest rate <span class="hint">% APR</span></label>
+              <input type="number" id="rate" value="6.5" step="0.05" min="0" inputmode="decimal">
+
+              <label for="term">Loan term <span class="hint">years</span></label>
+              <input type="number" id="term" value="30" step="5" min="1" inputmode="numeric">
+
+              <label for="income">Combined gross income <span class="hint">$ / year</span></label>
+              <input type="number" id="income" value="100000" step="500" min="0" inputmode="decimal">
+
+              <label for="debt">Other monthly debt <span class="hint">$ / mo (cars, loans, cards)</span></label>
+              <input type="number" id="debt" value="0" step="50" min="0" inputmode="decimal">
+
+              <label for="cash">Cash available <span class="hint">$ (covers down + closing)</span></label>
+              <input type="number" id="cash" value="40000" step="500" min="0" inputmode="decimal">
+            </fieldset>
+
+            <fieldset>
+              <legend>Extra payments <span class="hint">pay off faster</span></legend>
+              <label for="extraMo">Extra principal per month <span class="hint">$ / mo</span></label>
+              <input type="number" id="extraMo" value="0" step="25" min="0" inputmode="decimal">
+              <label for="extraOnce">One-time extra payment <span class="hint">$ (applied at start)</span></label>
+              <input type="number" id="extraOnce" value="0" step="500" min="0" inputmode="decimal">
+            </fieldset>
+
+            <details>
+              <summary>Adjust assumptions</summary>
+              <fieldset>
+                <legend class="soft">Estimates - edit any of them</legend>
+                <label for="taxYr">Property tax <span class="hint">$ / yr (est. 1.8% of price)</span></label>
+                <input type="number" id="taxYr" value="6300" step="50" min="0" inputmode="decimal">
+                <button type="button" class="link" id="taxReset">Re-estimate from price</button>
+                <label for="ins">Homeowners insurance <span class="hint">$ / yr</span></label>
+                <input type="number" id="ins" value="1800" step="50" min="0" inputmode="decimal">
+                <label for="pmiR">PMI rate <span class="hint">% of loan / yr (auto if &lt;20% down)</span></label>
+                <input type="number" id="pmiR" value="0.8" step="0.05" min="0" inputmode="decimal">
+                <label for="maintR">Maintenance reserve <span class="hint">% of value / yr</span></label>
+                <input type="number" id="maintR" value="1" step="0.25" min="0" inputmode="decimal">
+              </fieldset>
+              <fieldset>
+                <legend class="soft">Monthly utilities - edit freely</legend>
+                <label for="uElec">Electric <span class="hint">$ / mo</span></label>
+                <input type="number" id="uElec" value="120" step="5" min="0" inputmode="decimal">
+                <label for="uHeat">Heat (gas / propane) <span class="hint">$ / mo (annual avg)</span></label>
+                <input type="number" id="uHeat" value="120" step="5" min="0" inputmode="decimal">
+                <label for="uWater">Water &amp; sewer <span class="hint">$ / mo</span></label>
+                <input type="number" id="uWater" value="70" step="5" min="0" inputmode="decimal">
+                <label for="uTrash">Trash / garbage <span class="hint">$ / mo</span></label>
+                <input type="number" id="uTrash" value="25" step="5" min="0" inputmode="decimal">
+                <label for="uNet">Internet <span class="hint">$ / mo</span></label>
+                <input type="number" id="uNet" value="70" step="5" min="0" inputmode="decimal">
+              </fieldset>
+            </details>
+          </div>
+
+          <!-- RESULTS -->
+          <div class="card results" aria-live="polite">
+            <h2 class="bar">Monthly payment</h2>
+            <p class="big"><output id="piti">$0</output><small>/mo</small></p>
+            <div class="donut-wrap">
+              <div id="donut"></div>
+              <ul class="legend" id="donutLegend"></ul>
+            </div>
+            <div class="row"><span>Principal &amp; interest</span><output class="v" id="pi">$0</output></div>
+            <div class="row"><span>Property tax</span><output class="v" id="tax">$0</output></div>
+            <div class="row"><span>Insurance</span><output class="v" id="insM">$0</output></div>
+            <div class="row"><span>PMI <button type="button" class="help dark" popovertarget="pop-pmi" aria-label="What is PMI">?</button> <span class="hint" id="pmiNote"></span></span><output class="v" id="pmi">$0</output></div>
+            <div class="row"><span>Utilities</span><output class="v" id="utilM">$0</output></div>
+            <div class="row"><span>Maintenance reserve</span><output class="v" id="maintM">$0</output></div>
+            <div class="row"><span><b>All-in monthly</b></span><output class="v" id="allin">$0</output></div>
+
+            <h2 class="bar bar-mt">Affordability ratios <button type="button" class="help" popovertarget="pop-dti" aria-label="What is debt to income ratio">?</button></h2>
+            <div class="gauge">
+              <div class="top"><span>Front-end (housing &divide; income)</span><span><output id="fePct">0%</output> <span class="pill" id="fePill">-</span></span></div>
+              <div class="bartrack" aria-hidden="true"><div class="fill" id="feFill"></div></div>
+              <p class="note">Guideline: 28% or less</p>
+            </div>
+            <div class="gauge">
+              <div class="top"><span>Back-end (housing + debt &divide; income)</span><span><output id="bePct">0%</output> <span class="pill" id="bePill">-</span></span></div>
+              <div class="bartrack" aria-hidden="true"><div class="fill" id="beFill"></div></div>
+              <p class="note">Standard: 36% or less - lender max ~43%</p>
+            </div>
+            <p class="verdict" id="verdict" role="status">-</p>
+          </div>
+        </form>
+
+        <!-- LOAN OVER TIME -->
+        <div class="card">
+          <h2 class="bar">Loan over time <button type="button" class="help" popovertarget="pop-amort" aria-label="What is amortization">?</button></h2>
+          <div class="mc-grid">
+            <div>
+              <div class="row"><span>Payoff date</span><output class="v" id="payoffDate">-</output></div>
+              <div class="row"><span>Time to payoff</span><output class="v" id="payoffTime">-</output></div>
+              <div class="row"><span>Total interest paid</span><output class="v" id="totInt">$0</output></div>
+              <div class="row"><span>Total principal + interest</span><output class="v" id="totPaid">$0</output></div>
+            </div>
+            <div>
+              <div class="row"><span>PMI drops off <span class="hint">at 20% equity</span></span><output class="v" id="pmiDrop">-</output></div>
+              <div class="row"><span>Interest saved <span class="hint">vs no extra</span></span><output class="v" id="intSaved">$0</output></div>
+              <div class="row"><span>Time saved</span><output class="v" id="timeSaved">none</output></div>
+            </div>
+          </div>
+          <div id="amortChart" class="chart-mt"></div>
+          <p class="note">Remaining loan balance by year. The gold line marks when PMI can drop off (20% equity).</p>
+          <p class="verdict save verdict-mt" id="extraVerdict" role="status" hidden></p>
+        </div>
+
+        <!-- CLOSING COSTS -->
+        <div class="card">
+          <h2 class="bar">Estimated closing costs</h2>
+          <div class="row"><span>Loan origination <span class="hint">~0.75% of loan</span></span><output class="v" id="ccOrig">$0</output></div>
+          <div class="row"><span>Appraisal</span><output class="v" id="ccApp">$500</output></div>
+          <div class="row"><span>Lender / processing fees</span><output class="v" id="ccProc">$400</output></div>
+          <div class="row"><span>Title insurance &amp; settlement <span class="hint">~0.55% of price</span></span><output class="v" id="ccTitle">$0</output></div>
+          <div class="row"><span>Recording &amp; transfer fees</span><output class="v" id="ccRec">$300</output></div>
+          <div class="row"><span>Prepaid escrow <button type="button" class="help dark" popovertarget="pop-escrow" aria-label="What is prepaid escrow">?</button> <span class="hint">~3 mo tax + 1 yr insurance</span></span><output class="v" id="ccEsc">$0</output></div>
+          <div class="row"><span><b>Total closing costs</b></span><output class="v" id="ccTotal">$0</output></div>
+          <p class="note">Prepaid escrow is usually the biggest chunk and the one people forget. Transfer tax varies by state and is often seller-paid, so it is not included here.</p>
+        </div>
+
+        <!-- CASH + LOAN -->
+        <div class="card">
+          <h2 class="bar">Cash &amp; loan summary</h2>
+          <div class="mc-grid">
+            <div>
+              <div class="row"><span>Loan amount</span><output class="v" id="loan">$0</output></div>
+              <div class="row"><span>Down payment %</span><output class="v" id="downPct">0%</output></div>
+              <div class="row"><span>Closing costs (from above)</span><output class="v" id="close">$0</output></div>
+            </div>
+            <div>
+              <div class="row"><span>Cash needed (down + closing)</span><output class="v" id="need">$0</output></div>
+              <div class="row"><span>Cash available</span><output class="v" id="avail">$0</output></div>
+              <div class="row"><span><b>Cushion left after closing</b></span><output class="v" id="cushion">$0</output></div>
+            </div>
+          </div>
+          <p class="verdict verdict-mt" id="cushVerdict" role="status">-</p>
+        </div>
+
+        <p class="note">Estimates only - confirm tax, insurance, PMI, and closing costs against your lender's Loan Estimate. Not financial advice.</p>
+
+        <!-- popover explainers -->
+        <div id="pop-pmi" class="mc-pop" popover><h3>PMI - Private Mortgage Insurance</h3><p>Required when your down payment is under 20%. It protects the lender, not you. It automatically ends once you reach about 20-22% equity - the "Loan over time" card shows when.</p><button type="button" class="close" popovertarget="pop-pmi" popovertargetaction="hide">Got it</button></div>
+        <div id="pop-escrow" class="mc-pop" popover><h3>Prepaid escrow</h3><p>Money collected at closing to fund the lender's escrow account - usually your first year of homeowners insurance plus a few months of property tax. Often the single largest closing line item.</p><button type="button" class="close" popovertarget="pop-escrow" popovertargetaction="hide">Got it</button></div>
+        <div id="pop-dti" class="mc-pop" popover><h3>Debt-to-income (DTI)</h3><p><b>Front-end</b> = housing payment / gross income. <b>Back-end</b> = (housing + all other debt) / gross income. Lenders generally want front-end under 28% and back-end under 36%, with a hard ceiling near 43%.</p><button type="button" class="close" popovertarget="pop-dti" popovertargetaction="hide">Got it</button></div>
+        <div id="pop-amort" class="mc-pop" popover><h3>Amortization</h3><p>How each payment splits between interest and principal. Early on most of the payment is interest; over time it flips. Extra principal early erases future interest - which is why even small extra payments cut years off the loan.</p><button type="button" class="close" popovertarget="pop-amort" popovertargetaction="hide">Got it</button></div>
+
+        <!-- first-visit onboarding -->
+        <dialog id="onboard" class="mc-onboard" aria-labelledby="ob-title">
+          <div class="ob-head">
+            <h2 id="ob-title">Quick setup</h2>
+            <p>A few basics so the calculator starts with your numbers. Saved on this device only - never uploaded.</p>
+          </div>
+          <form id="obForm" method="dialog">
+            <label for="obIncome">Household income ($ / yr)</label>
+            <input type="number" id="obIncome" inputmode="decimal" min="0" step="1000">
+            <label for="obPrice">Target / max home price ($)</label>
+            <input type="number" id="obPrice" inputmode="decimal" min="0" step="1000">
+            <label for="obDownPct">Down payment (%)</label>
+            <input type="number" id="obDownPct" inputmode="decimal" min="0" step="0.5">
+            <label for="obRate">Interest rate (% APR)</label>
+            <input type="number" id="obRate" inputmode="decimal" min="0" step="0.05">
+            <div class="ob-actions">
+              <button type="button" class="ob-skip" id="obSkip">Skip for now</button>
+              <button type="submit" class="ob-go">Start calculating</button>
+            </div>
+          </form>
+        </dialog>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="content-section">
+    <div class="container">
+      <div class="trust-box">
+        <p>This calculator is free and private - it runs entirely in your browser, and nothing you enter is saved or sent anywhere.</p>
+        <p>If it saved you time, you can <a href="https://ko-fi.com/abaker421" target="_blank" rel="noopener">drop a coffee on Ko-fi</a>. Optional - the tool stays free either way.</p>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <div class="app-toast" id="appToast" role="status" aria-live="polite" hidden></div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span class="footer-logo">Build with Baker</span>
+      <div class="footer-links">
+        <a href="https://github.com/buildwithbaker" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://ko-fi.com/abaker421" target="_blank" rel="noopener">Ko-fi</a>
+        <a href="https://buildwithbaker.io/" rel="noopener">Build with Baker</a>
+        <a href="https://buildwithbaker.io/privacy" rel="noopener">Privacy</a>
+      </div>
+      <address class="footer-copy">&copy; 2026 Adam Baker &middot; Ashland, WI</address>
+    </div>
+  </footer>
+
+</body>
+</html>
