@@ -1,0 +1,49 @@
+name: Synced files
+
+# The three files below are copies of files that live in the buildwithbaker repo.
+# Nothing in git enforces that, so they drift silently. This job diffs them against
+# upstream on every push and pull request, and once a week to catch drift introduced
+# on the upstream side after the last sync.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  drift:
+    name: Diff synced files against buildwithbaker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare
+        env:
+          UPSTREAM_REPO: https://github.com/buildwithbaker/buildwithbaker.git
+          # The upstream ref these files were last copied from. Normally main. Pin it to a
+          # branch only while the upstream fix is still on an open PR, and flip it back to
+          # main once that PR lands - the job prints a notice while it is pinned.
+          UPSTREAM_REF: fix/mortgage-input-guards
+        run: |
+          set -euo pipefail
+          git clone --quiet --depth 1 --branch "$UPSTREAM_REF" "$UPSTREAM_REPO" upstream
+          status=0
+          for f in css/styles.css css/mortgage-calculator.css js/mortgage-calculator.js; do
+            if diff -u "upstream/$f" "$f" > "/tmp/$(basename "$f").diff"; then
+              echo "ok      $f"
+            else
+              status=1
+              echo "DRIFT   $f"
+              cat "/tmp/$(basename "$f").diff"
+            fi
+          done
+          if [ "$UPSTREAM_REF" != "main" ]; then
+            echo "::notice::Pinned to upstream ref $UPSTREAM_REF, not main. Flip UPSTREAM_REF back to main once that upstream PR merges."
+          fi
+          if [ "$status" -ne 0 ]; then
+            echo "::error::A synced file has drifted from buildwithbaker. Fix it upstream first, then copy the file across - do not edit it here."
+          fi
+          exit $status

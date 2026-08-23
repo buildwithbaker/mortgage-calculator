@@ -96,6 +96,8 @@
 .mc .pg{background:var(--ok-bg);color:var(--ok-tx);}
 .mc .pa{background:var(--tight-bg);color:var(--tight-tx);}
 .mc .pr{background:var(--high-bg);color:var(--high-tx);}
+/* Neutral pill: the ratio is undefined, not good and not bad. Used when income is blank. */
+.mc .pn{background:var(--c-line);color:var(--c-muted);}
 .mc .note{font-size:12px;color:var(--c-muted);margin-top:6px;}
 .mc .chart-mt{margin-top:12px;}
 
