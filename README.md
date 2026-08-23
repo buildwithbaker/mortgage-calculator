@@ -34,10 +34,34 @@ js/app.js                service-worker registration, install prompt, theme togg
 images/                  icons and the Open Graph card
 ```
 
+## Synced files
+
 `css/styles.css`, `css/mortgage-calculator.css`, and `js/mortgage-calculator.js`
-are kept byte-identical to their counterparts in the
-[buildwithbaker](https://github.com/buildwithbaker/buildwithbaker) repo so they
-can be re-synced with a straight copy. Standalone-only changes live in
+are copies of files that live in the
+[buildwithbaker](https://github.com/buildwithbaker/buildwithbaker) repo. They are
+copies, not links - nothing in git holds them together, so they drift. They have
+drifted before: this repo served a calculator carrying seven arithmetic and
+input-handling bugs that had already been fixed on the main site, plus a console
+error on every load, while the README claimed the files were byte-identical.
+
+What catches drift now is the `Synced files` GitHub Actions job in
+`.github/workflows/sync-check.yml`. It clones buildwithbaker, diffs all three
+files, prints the diff, and fails the build on any difference - on every push and
+pull request, and once a week so drift introduced upstream after the last sync
+surfaces too. The upstream ref it compares against is `UPSTREAM_REF` in that
+workflow.
+
+The same check by hand:
+
+```bash
+git clone --depth 1 https://github.com/buildwithbaker/buildwithbaker /tmp/bwb
+for f in css/styles.css css/mortgage-calculator.css js/mortgage-calculator.js; do
+  diff -u "/tmp/bwb/$f" "$f" && echo "ok  $f"
+done
+```
+
+Fix bugs in buildwithbaker first, then copy the file across. Editing these three
+files here forks the two copies silently. Standalone-only changes belong in
 `css/app.css` and `js/app.js`.
 
 ## Notes
@@ -56,4 +80,4 @@ GitHub Pages serves `main` / root. Push to `main` and it goes live.
 
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE).

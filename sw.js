@@ -1,6 +1,6 @@
 /* Cache-first service worker.
    Bump CACHE on every asset change or clients keep the old copy forever. */
-const CACHE = 'mortgage-calc-v1';
+const CACHE = 'mortgage-calc-v2';
 
 const PRECACHE = [
   './',

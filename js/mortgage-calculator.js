@@ -5,6 +5,12 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var money = function (n) { return '$' + Math.round(n).toLocaleString(); };
+  /* Read a number field defensively. The min= attributes in the markup never run:
+     there is no form submit, so the browser never validates. A blank, non-numeric or
+     negative box has to read as 0 here or it propagates into the arithmetic - a blank
+     term divided by zero and printed $Infinity, and a negative rate printed negative
+     total interest. */
+  var nn = function (id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
   var STORE = 'bwb-mortgage-v1';
   var taxEdited = false;
 
@@ -81,7 +87,10 @@
       marker = '<line x1="' + X.toFixed(1) + '" y1="' + T + '" x2="' + X.toFixed(1) + '" y2="' + (H - B) + '" stroke="#445063" stroke-width="1.5" stroke-dasharray="3 3"/>' +
         '<text x="' + (X + 3).toFixed(1) + '" y="' + (T + 10) + '" font-size="8.5" fill="#445063">PMI ends</text>';
     }
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="auto" role="img" aria-label="Loan balance over time">' +
+    /* No height attribute: "auto" is not a valid SVG length and throws a console
+       error. With viewBox + width="100%", height resolves from the intrinsic
+       aspect ratio, which is what "auto" was reaching for anyway. */
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Loan balance over time">' +
       grid + '<polygon points="' + area + '" fill="rgba(43,74,139,.14)"/>' +
       '<polyline points="' + line + '" fill="none" stroke="#2B4A8B" stroke-width="2"/>' +
       marker + ylab + xlab +
@@ -114,7 +123,16 @@
   }
   function addMonths(months) { var d = new Date(); d.setMonth(d.getMonth() + months); return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }); }
 
+  /* pct === null means the ratio is undefined, not zero. Without this branch a blank
+     income scored 0% on both gauges, turned both pills green and printed the best
+     possible verdict - the most misleading output on the page. */
   function setGauge(fillId, pillId, pctId, pct, t1, t2) {
+    if (pct === null) {
+      $(pctId).textContent = '-';
+      $(fillId).style.width = '0%';
+      var np = $(pillId); np.textContent = 'NO INCOME'; np.className = 'pill pn';
+      return -1;
+    }
     $(pctId).textContent = pct.toFixed(0) + '%';
     var fill = $(fillId), pill = $(pillId), cls, col;
     fill.style.width = Math.min(pct, 100) + '%';
@@ -127,20 +145,22 @@
 
   /* ---------- main calc ---------- */
   function calc() {
-    var price = +$('price').value, down = +$('down').value;
-    var rate = +$('rate').value / 100, term = +$('term').value;
-    var income = +$('income').value, debt = +$('debt').value, cash = +$('cash').value;
-    var extraMo = +$('extraMo').value, extraOnce = +$('extraOnce').value;
-    var ins = +$('ins').value, pmiR = +$('pmiR').value / 100, maintR = +$('maintR').value / 100;
-    var util = +$('uElec').value + +$('uHeat').value + +$('uWater').value + +$('uTrash').value + +$('uNet').value;
+    var price = nn('price'), down = nn('down');
+    var rate = nn('rate') / 100, term = nn('term');
+    var income = nn('income'), debt = nn('debt'), cash = nn('cash');
+    var extraMo = nn('extraMo'), extraOnce = nn('extraOnce');
+    var ins = nn('ins'), pmiR = nn('pmiR') / 100, maintR = nn('maintR') / 100;
+    var util = nn('uElec') + nn('uHeat') + nn('uWater') + nn('uTrash') + nn('uNet');
 
     if (!taxEdited) { $('taxYr').value = Math.round(price * 0.018); }
-    var taxYr = +$('taxYr').value;
+    var taxYr = nn('taxYr');
 
     var loan = Math.max(price - down, 0);
     var gMonthly = income / 12;
-    var r = rate / 12, n = term * 12;
-    var pi = r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : (n > 0 ? loan / n : 0);
+    var r = rate / 12, n = Math.round(term * 12);
+    /* n === 0 is the blank-term case. Math.pow(1+r,0)-1 is exactly 0, so the standard
+       formula divides by zero and renders $Infinity. Guard before dividing, not after. */
+    var pi = n > 0 ? (r > 0 ? loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1) : loan / n) : 0;
     var tax = taxYr / 12, insM = ins / 12;
     var downPct = price > 0 ? down / price * 100 : 0;
     var hasPMI = downPct < 20;
@@ -166,28 +186,41 @@
     ]);
     $('donut').innerHTML = d.svg; $('donutLegend').innerHTML = d.legend;
 
-    var fe = gMonthly > 0 ? piti / gMonthly * 100 : 0, be = gMonthly > 0 ? (piti + debt) / gMonthly * 100 : 0;
+    /* No income means the ratios are undefined, not zero. Passing null makes both gauges
+       say so instead of scoring a blank box as the best possible result. */
+    var fe = gMonthly > 0 ? piti / gMonthly * 100 : null, be = gMonthly > 0 ? (piti + debt) / gMonthly * 100 : null;
     var feL = setGauge('feFill', 'fePill', 'fePct', fe, 28, 33);
     var beL = setGauge('beFill', 'bePill', 'bePct', be, 36, 43);
     var worst = Math.max(feL, beL), v = $('verdict');
-    if (worst === 0) { v.className = 'verdict vg'; v.textContent = 'Comfortable - both ratios are within standard guidelines.'; }
+    if (worst < 0) { v.className = 'verdict va'; v.textContent = 'Enter your gross annual income to see whether this payment fits.'; }
+    else if (worst === 0) { v.className = 'verdict vg'; v.textContent = 'Comfortable - both ratios are within standard guidelines.'; }
     else if (worst === 1) { v.className = 'verdict va'; v.textContent = 'Tight - approvable, but little slack. Watch utilities and savings.'; }
     else { v.className = 'verdict vr'; v.textContent = 'High - over the comfortable line. Lower price, raise down payment, or cut debt.'; }
 
-    var base = simulate(loan, r, pi, 0, 0, price);
-    var cur = simulate(loan, r, pi, extraMo, extraOnce, price);
-    $('payoffDate').textContent = addMonths(cur.months);
-    $('payoffTime').textContent = ym(cur.months);
-    $('totInt').textContent = money(cur.totalInterest);
-    $('totPaid').textContent = money(loan + cur.totalInterest);
-    $('pmiDrop').textContent = hasPMI ? (cur.pmiDrop === null ? '-' : addMonths(cur.pmiDrop) + ' (' + ym(cur.pmiDrop) + ')') : 'No PMI';
-    var intSaved = base.totalInterest - cur.totalInterest, moSaved = base.months - cur.months;
-    $('intSaved').textContent = money(intSaved);
-    $('timeSaved').textContent = moSaved > 0 ? ym(moSaved) : 'none';
-    $('amortChart').innerHTML = drawBalance(cur.yearly, loan, hasPMI ? cur.pmiDrop : null);
+    /* An amortisation schedule needs a loan, a term and a payment. Without all three the
+       simulation bails on its first iteration and reports a one-month payoff, which reads
+       as a spectacular result rather than as missing input. */
     var ev = $('extraVerdict');
-    if (extraMo > 0 || extraOnce > 0) { ev.hidden = false; ev.textContent = 'With these extra payments you pay off ' + ym(moSaved) + ' sooner and save ' + money(intSaved) + ' in interest.'; }
-    else { ev.hidden = true; }
+    if (loan > 0 && n > 0 && pi > 0) {
+      var base = simulate(loan, r, pi, 0, 0, price);
+      var cur = simulate(loan, r, pi, extraMo, extraOnce, price);
+      $('payoffDate').textContent = addMonths(cur.months);
+      $('payoffTime').textContent = ym(cur.months);
+      $('totInt').textContent = money(cur.totalInterest);
+      $('totPaid').textContent = money(loan + cur.totalInterest);
+      $('pmiDrop').textContent = hasPMI ? (cur.pmiDrop === null ? '-' : addMonths(cur.pmiDrop) + ' (' + ym(cur.pmiDrop) + ')') : 'No PMI';
+      var intSaved = base.totalInterest - cur.totalInterest, moSaved = base.months - cur.months;
+      $('intSaved').textContent = money(intSaved);
+      $('timeSaved').textContent = moSaved > 0 ? ym(moSaved) : 'none';
+      $('amortChart').innerHTML = drawBalance(cur.yearly, loan, hasPMI ? cur.pmiDrop : null);
+      if (extraMo > 0 || extraOnce > 0) { ev.hidden = false; ev.textContent = 'With these extra payments you pay off ' + ym(moSaved) + ' sooner and save ' + money(intSaved) + ' in interest.'; }
+      else { ev.hidden = true; }
+    } else {
+      ['payoffDate', 'payoffTime', 'totInt', 'totPaid', 'intSaved', 'timeSaved'].forEach(function (id) { $(id).textContent = '-'; });
+      $('pmiDrop').textContent = hasPMI ? '-' : 'No PMI';
+      $('amortChart').innerHTML = '';
+      ev.hidden = true;
+    }
 
     var ccOrig = loan * 0.0075, ccApp = 500, ccProc = 400, ccRec = 300, ccTitle = price * 0.0055, ccEsc = (tax * 3) + ins;
     var ccTotal = ccOrig + ccApp + ccProc + ccTitle + ccRec + ccEsc;
@@ -196,7 +229,13 @@
     $('ccEsc').textContent = money(ccEsc);
     $('ccTotal').textContent = money(ccTotal);
 
-    var need = down + ccTotal, cushion = cash - need;
+    /* A one-time extra payment is applied against the balance at closing (see simulate),
+       so it is cash out of pocket on the same day. Leaving it out of "cash needed" credited
+       the principal reduction while reporting the cushion unchanged - the two panels
+       contradicted each other. */
+    var extraRow = $('ccExtraRow');
+    if (extraRow) { extraRow.hidden = extraOnce <= 0; $('ccExtra').textContent = money(extraOnce); }
+    var need = down + ccTotal + extraOnce, cushion = cash - need;
     $('loan').textContent = money(loan);
     $('downPct').textContent = downPct.toFixed(1) + '%';
     $('close').textContent = money(ccTotal);
@@ -216,7 +255,7 @@
   $('downR').addEventListener('input', function () { $('down').value = $('downR').value; syncFromDollars(); calc(); });
   $('downP').addEventListener('input', function () {
     var price = +$('price').value, p = +$('downP').value;
-    $('down').value = Math.round(price * p / 100);
+    $('down').value = Math.ceil(price * p / 100);
     $('downR').value = Math.min(+$('down').value, +$('downR').max);
     calc();
   });
@@ -226,7 +265,10 @@
   Array.prototype.forEach.call(document.querySelectorAll('.qbtn[data-pct]'), function (b) {
     b.addEventListener('click', function () {
       var price = +$('price').value, p = +b.getAttribute('data-pct');
-      $('down').value = Math.round(price * p / 100); syncFromDollars(); calc();
+      /* Ceil, not round. On a price that is not divisible by 5, rounding down landed a
+         hair under the target - the 20% chip gave 19.999882%, which displays as "20.0%"
+         and charges PMI at the same time. A chip labelled 20% has to give at least 20%. */
+      $('down').value = Math.ceil(price * p / 100); syncFromDollars(); calc();
     });
   });
   ['rate', 'term', 'income', 'debt', 'cash', 'extraMo', 'extraOnce', 'ins', 'pmiR', 'maintR',

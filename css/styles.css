@@ -436,7 +436,12 @@ h1 em, h2 em {
 .cards-grid-tools .card h3 { font-size: 1.3rem; }
 .cards-grid-tools .card p { font-size: .95rem; }
 @media (max-width: 680px) {
-  .cards-grid-tools { grid-template-columns: 1fr; }
+  /* minmax(0,1fr), not a bare 1fr. `1fr` is minmax(auto,1fr), and that auto floor
+     is the card's min-content width - which the 1200px-wide card screenshot sets
+     to 424px. That floor, not the frame URL, is what pushed the Tools grid past
+     every phone width. The 2-up rule above already uses minmax(0,1fr); this one
+     had been left behind. */
+  .cards-grid-tools { grid-template-columns: minmax(0, 1fr); }
 }
 
 .card {
@@ -1230,6 +1235,11 @@ button:focus-visible,
   border-radius: 4px;
   padding: 3px 10px;
   flex: 1;
+  /* min-width:0 is load-bearing. A flex child defaults to min-width:auto, so a
+     nowrap URL sets its own longest-word width as a floor and the ellipsis never
+     applies - the longest fake URL then pushes every tool card past the viewport
+     on a phone. Do not remove. */
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1476,11 +1486,15 @@ button:focus-visible,
   border: 1px solid var(--frame-border);
   color: var(--color-primary);
   margin-bottom: .35rem;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   transition: transform .5s var(--spring, ease), background .25s, color .25s;
 }
 .svc-ic svg { width: 24px; height: 24px; display: block; }
 .svc-card h3 { margin: 0; font-size: 1.2rem; color: var(--color-text); }
 .svc-tag { font-size: .95rem; color: var(--color-text-muted); margin: 0 0 .35rem; }
+/* Price fine print under the bullets - must read smaller than .svc-tag above it */
+.svc-note { font-size: .8rem; color: var(--color-text-muted); margin: .1rem 0 0; line-height: 1.5; }
 .svc-card ul { list-style: none; display: flex; flex-direction: column; gap: .45rem; margin-top: .25rem; }
 .svc-card li {
   position: relative;
@@ -1513,7 +1527,7 @@ button:focus-visible,
 @media (prefers-reduced-motion: no-preference) {
   .svc-card { transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
   .svc-card:hover { transform: perspective(820px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.05) translateZ(6px); }
-  .svc-card:hover .svc-ic { transform: translateZ(34px) scale(1.08); }
+  .svc-card:hover .svc-ic { transform: translateY(-4px) scale(1.08); }
   .magnetic { transform: translate(calc(var(--dx, 0) * 7px), calc(var(--dy, 0) * 7px)); }
 }
 
