@@ -26,7 +26,7 @@ jobs:
           # The upstream ref these files were last copied from. Normally main. Pin it to a
           # branch only while the upstream fix is still on an open PR, and flip it back to
           # main once that PR lands - the job prints a notice while it is pinned.
-          UPSTREAM_REF: fix/mortgage-input-guards
+          UPSTREAM_REF: main
         run: |
           set -euo pipefail
           git clone --quiet --depth 1 --branch "$UPSTREAM_REF" "$UPSTREAM_REPO" upstream
