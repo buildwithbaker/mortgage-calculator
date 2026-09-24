@@ -4,6 +4,12 @@ name: Synced files
 # Nothing in git enforces that, so they drift silently. This job diffs them against
 # upstream on every push and pull request, and once a week to catch drift introduced
 # on the upstream side after the last sync.
+#
+# buildwithbaker is a PRIVATE repo, so the clone needs credentials. Supply them as an
+# UPSTREAM_READ_TOKEN repository secret (a token with read access to buildwithbaker).
+# Without it the job cannot see upstream at all, so it warns and passes rather than
+# failing red on every run with something nobody can act on. Drift itself is still a
+# hard failure whenever the clone succeeds.
 
 on:
   push:
@@ -22,14 +28,26 @@ jobs:
 
       - name: Compare
         env:
-          UPSTREAM_REPO: https://github.com/buildwithbaker/buildwithbaker.git
+          UPSTREAM_HOST_PATH: github.com/buildwithbaker/buildwithbaker.git
           # The upstream ref these files were last copied from. Normally main. Pin it to a
           # branch only while the upstream fix is still on an open PR, and flip it back to
           # main once that PR lands - the job prints a notice while it is pinned.
           UPSTREAM_REF: main
+          UPSTREAM_READ_TOKEN: ${{ secrets.UPSTREAM_READ_TOKEN }}
         run: |
           set -euo pipefail
-          git clone --quiet --depth 1 --branch "$UPSTREAM_REF" "$UPSTREAM_REPO" upstream
+
+          if [ -z "${UPSTREAM_READ_TOKEN:-}" ]; then
+            echo "::warning::Synced files were NOT verified. The upstream repo buildwithbaker/buildwithbaker is private and the UPSTREAM_READ_TOKEN secret is not set, so this job cannot read it. Add UPSTREAM_READ_TOKEN as a repository secret to turn the drift check back on."
+            exit 0
+          fi
+
+          if ! git clone --quiet --depth 1 --branch "$UPSTREAM_REF" \
+              "https://x-access-token:${UPSTREAM_READ_TOKEN}@${UPSTREAM_HOST_PATH}" upstream; then
+            echo "::warning::Synced files were NOT verified. Could not clone the private upstream buildwithbaker/buildwithbaker at ref $UPSTREAM_REF. Check that the UPSTREAM_READ_TOKEN secret is present, unexpired, and has read access to that repo."
+            exit 0
+          fi
+
           status=0
           for f in css/styles.css css/mortgage-calculator.css js/mortgage-calculator.js; do
             if diff -u "upstream/$f" "$f" > "/tmp/$(basename "$f").diff"; then

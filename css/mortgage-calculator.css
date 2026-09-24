@@ -13,6 +13,13 @@
   --c-card: var(--color-card, #ffffff);
   --c-field: var(--color-card, #ffffff);
   --c-on: var(--color-on-primary, #ffffff);
+  /* Bars and headers hold white text, so they take the solid indigo, not the
+     readable one - see the note on --color-primary-solid in styles.css. */
+  --c-primary-solid: var(--color-primary-solid, #2B4A8B);
+  /* Chart palette. It lives in CSS so the SVG can inherit it; the JS emits
+     classes and no colour attributes. */
+  --c-area: rgba(43,74,139,.14);
+  --c-s1:#2B4A8B; --c-s2:#5a7cc0; --c-s3:#2E7D5B; --c-s4:#445063;
   --ok-bg:#d7efe0; --ok-tx:#13623c; --ok-bar:#1f9d55;
   --tight-bg:#f6ecc4; --tight-tx:#6b5200; --tight-bar:#caa033;
   --high-bg:#f4d4d4; --high-tx:#8a2b2b; --high-bar:#cf4040;
@@ -31,7 +38,7 @@
 .mc form.mc-grid + .card{margin-top:20px;}
 .mc h2.bar{
   font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
-  color:var(--c-on);background:var(--c-primary);margin:0 -20px 16px;padding:11px 20px;
+  color:var(--c-on);background:var(--c-primary-solid);margin:0 -20px 16px;padding:11px 20px;
   display:flex;align-items:center;gap:8px;
 }
 .mc h2.bar:first-child{margin-top:-18px;}
@@ -118,11 +125,11 @@
 /* popover explainers */
 .mc-pop{
   margin:auto;max-width:330px;border:1px solid var(--color-border,#cfc9bd);border-radius:10px;padding:14px 16px;
-  background:#fff;color:var(--color-text,#1a2430);box-shadow:0 10px 34px rgba(20,30,50,.28);
+  background:var(--color-card,#fff);color:var(--color-text,#1a2430);box-shadow:0 10px 34px rgba(20,30,50,.28);
   font-size:13px;line-height:1.5;font-family:var(--font-sans, system-ui, sans-serif);
 }
 .mc-pop h3{margin:0 0 6px;font-size:14px;color:var(--color-primary,#2B4A8B);}
-.mc-pop .close{margin-top:10px;background:var(--color-primary,#2B4A8B);color:var(--color-on-primary,#f5f3ec);border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
+.mc-pop .close{margin-top:10px;background:var(--color-primary-solid,#2B4A8B);color:var(--color-on-primary,#f5f3ec);border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;}
 .mc-pop::backdrop{background:rgba(20,30,50,.20);}
 .mc-pop{opacity:0;transform:translateY(-6px);transition:opacity .18s, transform .18s, overlay .18s allow-discrete, display .18s allow-discrete;}
 .mc-pop:popover-open{opacity:1;transform:translateY(0);}
@@ -137,16 +144,19 @@
 }
 .mc-onboard .ob-head{position:sticky;top:0;}
 .mc-onboard::backdrop{background:rgba(20,30,50,.45);}
-.mc-onboard .ob-head{background:var(--color-primary,#2B4A8B);color:var(--color-on-primary,#f5f3ec);padding:16px 22px;border-radius:14px 14px 0 0;}
+.mc-onboard .ob-head{background:var(--color-primary-solid,#2B4A8B);color:var(--color-on-primary,#f5f3ec);padding:16px 22px;border-radius:14px 14px 0 0;}
 .mc-onboard .ob-head h2{margin:0;font-size:17px;color:var(--color-on-primary,#fff);}
 .mc-onboard .ob-head p{margin:6px 0 0;font-size:13px;opacity:.92;color:var(--color-on-primary,#fff);}
+/* The dark solid indigo has less headroom than the light one: 92% white on it
+   measures 4.40:1. Full strength for that header line in dark mode only. */
+html[data-theme="dark"] .mc-onboard .ob-head p{opacity:1;}
 .mc-onboard form{padding:18px 22px 22px;}
 .mc-onboard label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px;}
 .mc-onboard label:first-of-type{margin-top:0;}
-.mc-onboard input{width:100%;padding:9px 10px;border:1px solid var(--color-border,#cfc9bd);border-radius:8px;font-size:15px;background:#fff;color:inherit;font-family:inherit;}
+.mc-onboard input{width:100%;padding:9px 10px;border:1px solid var(--color-border,#cfc9bd);border-radius:8px;font-size:15px;background:var(--color-card,#fff);color:inherit;font-family:inherit;}
 .mc-onboard .ob-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
 .mc-onboard .ob-skip{background:none;border:none;color:var(--color-text-muted,#526070);text-decoration:underline;cursor:pointer;font-size:13px;font-family:inherit;}
-.mc-onboard .ob-go{background:var(--color-primary,#2B4A8B);color:var(--color-on-primary,#f5f3ec);border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.mc-onboard .ob-go{background:var(--color-primary-solid,#2B4A8B);color:var(--color-on-primary,#f5f3ec);border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
 
 @media(max-width:760px){
   .mc-onboard{
@@ -161,6 +171,37 @@
 }
 
 @media (prefers-reduced-motion: reduce){ .mc-pop{transition:none;} }
+
+/* Chart colours are applied here rather than as SVG fill/stroke attributes.
+   Presentation attributes lose to CSS, and the chart is rebuilt on every input
+   change, so styling it from the sheet is the only way one drawing serves both
+   themes. The JS emits classes and no colours. */
+.mc .mc-gridline{stroke:var(--c-line);stroke-width:1;}
+.mc .mc-axis{fill:var(--c-muted);}
+.mc .mc-marker{stroke:var(--c-muted);}
+.mc .mc-line{stroke:var(--c-primary);fill:none;}
+.mc .mc-area{fill:var(--c-area);}
+.mc .mc-hole{fill:var(--c-card);}
+.mc .mc-s1{fill:var(--c-s1);} .mc .mc-s2{fill:var(--c-s2);}
+.mc .mc-s3{fill:var(--c-s3);} .mc .mc-s4{fill:var(--c-s4);}
+
+/* ============================================================
+   Dark theme
+   This sheet carried no data-theme rules, so every hardcoded light value below
+   stayed light on a navy page - the verdict panels rendered as pale pink and
+   cream cards, and the chart drew near-white gridlines over a dark surface.
+   ============================================================ */
+html[data-theme="dark"] .mc{
+  --c-area: rgba(110,144,212,.16);
+  /* Slice fills need 3:1 against the card they sit on, which the light set
+     (deep indigo, slate) cannot give on #1A2236. */
+  --c-s1:#6E90D4; --c-s2:#9DB6E8; --c-s3:#5FC18E; --c-s4:#B6BFD0;
+  /* Status panels: dark tints carrying light ink, lowest measured 8.3:1. */
+  --ok-bg:#12301F;    --ok-tx:#7FD9A6;    --ok-bar:#3FBF77;
+  --tight-bg:#332B10; --tight-tx:#E3C566; --tight-bar:#C9A23A;
+  --high-bg:#3A1A1A;  --high-tx:#F0A3A3;  --high-bar:#E06B6B;
+  --save-bg:#0F2E2A;  --save-tx:#7FD6C8;
+}
 
 /* print */
 @media print{

@@ -41,13 +41,16 @@
     $('downP').value = price > 0 ? (d / price * 100).toFixed(1) : '0';
   }
 
-  /* ---------- charts (inline SVG, no dependencies, CSP-safe) ---------- */
+  /* ---------- charts (inline SVG, no dependencies, CSP-safe) ----------
+     No colours here on purpose. Every mark carries a class and the palette lives
+     in css/mortgage-calculator.css, so the chart follows the theme; a fill or
+     stroke attribute written here would be a light value frozen into dark mode. */
   function polar(cx, cy, r, deg) { var a = (deg - 90) * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
-  function slice(cx, cy, r, start, end, color) {
+  function slice(cx, cy, r, start, end, cls) {
     var p1 = polar(cx, cy, r, start), p2 = polar(cx, cy, r, end);
     var large = (end - start) > 180 ? 1 : 0;
     return '<path d="M' + cx + ',' + cy + ' L' + p1[0].toFixed(2) + ',' + p1[1].toFixed(2) +
-      ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + p2[0].toFixed(2) + ',' + p2[1].toFixed(2) + ' Z" fill="' + color + '"/>';
+      ' A' + r + ',' + r + ' 0 ' + large + ' 1 ' + p2[0].toFixed(2) + ',' + p2[1].toFixed(2) + ' Z" class="' + cls + '"/>';
   }
   function drawDonut(items) {
     var tot = items.reduce(function (s, i) { return s + i.value; }, 0) || 1;
@@ -55,12 +58,12 @@
     items.forEach(function (it) {
       if (it.value <= 0) return;
       var ang = it.value / tot * 360; if (ang >= 359.999) ang = 359.999;
-      paths += slice(60, 60, 54, a, a + ang, it.color); a += ang;
+      paths += slice(60, 60, 54, a, a + ang, it.cls); a += ang;
     });
-    paths += '<circle cx="60" cy="60" r="34" fill="#ffffff"/>';
+    paths += '<circle cx="60" cy="60" r="34" class="mc-hole"/>';
     var svg = '<svg viewBox="0 0 120 120" width="118" height="118" role="img" aria-label="Monthly payment breakdown">' + paths + '</svg>';
     var legend = items.filter(function (i) { return i.value > 0; }).map(function (it) {
-      return '<li><span class="sw"><svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><rect width="11" height="11" rx="2" fill="' + it.color + '"/></svg></span>' +
+      return '<li><span class="sw"><svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><rect width="11" height="11" rx="2" class="' + it.cls + '"/></svg></span>' +
         it.label + '<span class="lv">' + money(it.value) + '</span></li>';
     }).join('');
     return { svg: svg, legend: legend };
@@ -74,27 +77,27 @@
     var grid = '', ylab = '', xlab = '', k, Y, val;
     for (k = 0; k <= 4; k++) {
       val = loan * k / 4; Y = py(val);
-      grid += '<line x1="' + L + '" y1="' + Y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y.toFixed(1) + '" stroke="#E1E6EE" stroke-width="1"/>';
-      ylab += '<text x="' + (L - 6) + '" y="' + (Y + 3).toFixed(1) + '" text-anchor="end" font-size="9" fill="#445063">' + fmtK(val) + '</text>';
+      grid += '<line x1="' + L + '" y1="' + Y.toFixed(1) + '" x2="' + (W - R) + '" y2="' + Y.toFixed(1) + '" class="mc-gridline"/>';
+      ylab += '<text x="' + (L - 6) + '" y="' + (Y + 3).toFixed(1) + '" text-anchor="end" font-size="9" class="mc-axis">' + fmtK(val) + '</text>';
     }
     var step = Math.max(1, Math.round(n / 6)), i;
-    for (i = 0; i <= n; i += step) { xlab += '<text x="' + px(i).toFixed(1) + '" y="' + (H - B + 14) + '" text-anchor="middle" font-size="9" fill="#445063">' + i + '</text>'; }
+    for (i = 0; i <= n; i += step) { xlab += '<text x="' + px(i).toFixed(1) + '" y="' + (H - B + 14) + '" text-anchor="middle" font-size="9" class="mc-axis">' + i + '</text>'; }
     var line = yr.map(function (b, idx) { return px(idx).toFixed(1) + ',' + py(b).toFixed(1); }).join(' ');
     var area = px(0).toFixed(1) + ',' + py(0).toFixed(1) + ' ' + line + ' ' + px(n).toFixed(1) + ',' + py(0).toFixed(1);
     var marker = '';
     if (pmiDropMo !== null && pmiDropMo > 0) {
       var X = px(pmiDropMo / 12);
-      marker = '<line x1="' + X.toFixed(1) + '" y1="' + T + '" x2="' + X.toFixed(1) + '" y2="' + (H - B) + '" stroke="#445063" stroke-width="1.5" stroke-dasharray="3 3"/>' +
-        '<text x="' + (X + 3).toFixed(1) + '" y="' + (T + 10) + '" font-size="8.5" fill="#445063">PMI ends</text>';
+      marker = '<line x1="' + X.toFixed(1) + '" y1="' + T + '" x2="' + X.toFixed(1) + '" y2="' + (H - B) + '" class="mc-marker" stroke-width="1.5" stroke-dasharray="3 3"/>' +
+        '<text x="' + (X + 3).toFixed(1) + '" y="' + (T + 10) + '" font-size="8.5" class="mc-axis">PMI ends</text>';
     }
     /* No height attribute: "auto" is not a valid SVG length and throws a console
        error. With viewBox + width="100%", height resolves from the intrinsic
        aspect ratio, which is what "auto" was reaching for anyway. */
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" role="img" aria-label="Loan balance over time">' +
-      grid + '<polygon points="' + area + '" fill="rgba(43,74,139,.14)"/>' +
-      '<polyline points="' + line + '" fill="none" stroke="#2B4A8B" stroke-width="2"/>' +
+      grid + '<polygon points="' + area + '" class="mc-area"/>' +
+      '<polyline points="' + line + '" class="mc-line" stroke-width="2"/>' +
       marker + ylab + xlab +
-      '<text x="' + (L + (W - L - R) / 2).toFixed(1) + '" y="' + (H - 1) + '" text-anchor="middle" font-size="9" fill="#445063">Years</text></svg>';
+      '<text x="' + (L + (W - L - R) / 2).toFixed(1) + '" y="' + (H - 1) + '" text-anchor="middle" font-size="9" class="mc-axis">Years</text></svg>';
   }
 
   /* ---------- amortization simulation ---------- */
@@ -179,10 +182,10 @@
     $('allin').textContent = money(allin);
 
     var d = drawDonut([
-      { label: 'Principal & interest', value: pi, color: '#2B4A8B' },
-      { label: 'Property tax', value: tax, color: '#5a7cc0' },
-      { label: 'Insurance', value: insM, color: '#2E7D5B' },
-      { label: 'PMI', value: pmi, color: '#445063' }
+      { label: 'Principal & interest', value: pi, cls: 'mc-s1' },
+      { label: 'Property tax', value: tax, cls: 'mc-s2' },
+      { label: 'Insurance', value: insM, cls: 'mc-s3' },
+      { label: 'PMI', value: pmi, cls: 'mc-s4' }
     ]);
     $('donut').innerHTML = d.svg; $('donutLegend').innerHTML = d.legend;
 
