@@ -76,7 +76,9 @@ files here forks the two copies silently. Standalone-only changes belong in
 
 ## Deploying
 
-GitHub Pages serves `main` / root. Push to `main` and it goes live.
+GitHub Pages serves `main` / root. `main` is protected, so changes ship through a pull
+request: branch, commit, push the branch, open a PR, squash-merge. It goes live on the
+merge. See `CLAUDE.md` for the full flow.
 
 ## License
 
