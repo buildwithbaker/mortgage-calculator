@@ -11,7 +11,7 @@
   <meta property="og:description" content="Estimate your real monthly payment, DTI ratios, closing costs, and payoff timeline. Free, private, runs in your browser." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://mortgage.buildwithbaker.io/" />
-  <meta property="og:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png?v=1" />
+  <meta property="og:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png?v=2" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Home Affordability Calculator by Build with Baker" />
@@ -21,7 +21,7 @@
   <meta name="twitter:creator" content="@BuildwithBaker" />
   <meta name="twitter:title" content="Home Affordability Calculator | Build with Baker" />
   <meta name="twitter:description" content="Free home affordability calculator - payment, DTI, closing costs, PMI drop-off, extra-payment payoff." />
-  <meta name="twitter:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png" />
+  <meta name="twitter:image" content="https://mortgage.buildwithbaker.io/images/mortgage-og.png?v=2" />
   <link rel="canonical" href="https://mortgage.buildwithbaker.io/" />
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/mortgage-calculator.css" />
@@ -125,7 +125,7 @@
                 <input type="number" id="downP" value="10" step="0.5" min="0" inputmode="decimal" aria-label="Down payment percent">
               </div>
               <input type="range" id="downR" min="0" max="120000" step="1000" value="35000" aria-label="Down payment slider">
-              <div class="qrow" aria-label="Quick down payment percents">
+              <div class="qrow" role="group" aria-label="Quick down payment percents">
                 <button type="button" class="qbtn" data-pct="3.5">3.5%</button>
                 <button type="button" class="qbtn" data-pct="5">5%</button>
                 <button type="button" class="qbtn" data-pct="10">10%</button>
@@ -286,16 +286,16 @@
           </div>
           <form id="obForm" method="dialog">
             <label for="obIncome">Household income ($ / yr)</label>
-            <input type="number" id="obIncome" inputmode="decimal" min="0" step="1000">
+            <input type="number" id="obIncome" inputmode="decimal" min="0" step="any" required>
             <label for="obPrice">Target / max home price ($)</label>
-            <input type="number" id="obPrice" inputmode="decimal" min="0" step="1000">
+            <input type="number" id="obPrice" inputmode="decimal" min="0" step="any" required>
             <label for="obDownPct">Down payment (%)</label>
-            <input type="number" id="obDownPct" inputmode="decimal" min="0" step="0.5">
+            <input type="number" id="obDownPct" inputmode="decimal" min="0" max="100" step="any" required>
             <label for="obRate">Interest rate (% APR)</label>
-            <input type="number" id="obRate" inputmode="decimal" min="0" step="0.05">
+            <input type="number" id="obRate" inputmode="decimal" min="0" step="any" required>
             <div class="ob-actions">
               <button type="button" class="ob-skip" id="obSkip">Skip for now</button>
-              <button type="submit" class="ob-go">Start calculating</button>
+              <button type="submit" class="ob-go" id="obGo">Start calculating</button>
             </div>
           </form>
         </dialog>
@@ -307,7 +307,7 @@
   <section class="content-section">
     <div class="container">
       <div class="trust-box">
-        <p>This calculator is free and private - it runs entirely in your browser, and nothing you enter is saved or sent anywhere.</p>
+        <p>This calculator is free and private - it runs entirely in your browser, and nothing you enter is sent anywhere. Your numbers are saved in this browser only, so the page opens where you left off. "Reset my defaults" clears them and starts over.</p>
         <p>If it saved you time, you can <a href="https://ko-fi.com/abaker421" target="_blank" rel="noopener">drop a coffee on Ko-fi</a>. Optional - the tool stays free either way.</p>
       </div>
     </div>

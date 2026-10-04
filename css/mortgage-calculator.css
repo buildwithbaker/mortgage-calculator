@@ -10,6 +10,10 @@
   --c-ink: var(--color-text, #0F1A2E);
   --c-muted: var(--color-text-muted, #445063);
   --c-line: var(--color-border, #E1E6EE);
+  /* Form-field edge. --c-line is a hairline for dividers and measures 1.25:1 on the
+     white field; a control edge needs 3:1 (WCAG 1.4.11). The token in styles.css
+     carries both themes. */
+  --c-field-line: var(--color-field-border, #767F8E);
   --c-card: var(--color-card, #ffffff);
   --c-field: var(--color-card, #ffffff);
   --c-on: var(--color-on-primary, #ffffff);
@@ -58,7 +62,7 @@
 .mc fieldset > label:first-of-type{margin-top:0;}
 .mc .hint{font-weight:400;color:var(--c-muted);font-size:12px;}
 .mc input[type=number]{
-  width:100%;padding:9px 10px;border:1px solid var(--c-line);border-radius:8px;
+  width:100%;padding:9px 10px;border:1px solid var(--c-field-line);border-radius:8px;
   font-size:15px;background:var(--c-field);color:var(--c-ink);min-height:24px;font-family:inherit;
 }
 .mc input[type=range]{width:100%;min-height:24px;accent-color:var(--c-primary);}
@@ -153,7 +157,7 @@ html[data-theme="dark"] .mc-onboard .ob-head p{opacity:1;}
 .mc-onboard form{padding:18px 22px 22px;}
 .mc-onboard label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px;}
 .mc-onboard label:first-of-type{margin-top:0;}
-.mc-onboard input{width:100%;padding:9px 10px;border:1px solid var(--color-border,#cfc9bd);border-radius:8px;font-size:15px;background:var(--color-card,#fff);color:inherit;font-family:inherit;}
+.mc-onboard input{width:100%;padding:9px 10px;border:1px solid var(--color-field-border,#767F8E);border-radius:8px;font-size:15px;background:var(--color-card,#fff);color:inherit;font-family:inherit;}
 .mc-onboard .ob-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
 .mc-onboard .ob-skip{background:none;border:none;color:var(--color-text-muted,#526070);text-decoration:underline;cursor:pointer;font-size:13px;font-family:inherit;}
 .mc-onboard .ob-go{background:var(--color-primary-solid,#2B4A8B);color:var(--color-on-primary,#f5f3ec);border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}

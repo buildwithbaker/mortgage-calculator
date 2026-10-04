@@ -4,7 +4,10 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var money = function (n) { return '$' + Math.round(n).toLocaleString(); };
+  /* Round the magnitude, then put the sign in front of the symbol. Math.round on the
+     signed value rounds -3862.5 up to -3862 while its positive twin goes to 3863, so
+     the cushion and the "Short by" line disagreed by a dollar, and printed "$-3,862". */
+  var money = function (n) { return (n < 0 && Math.round(-n) ? '-' : '') + '$' + Math.round(Math.abs(n)).toLocaleString(); };
   /* Read a number field defensively. The min= attributes in the markup never run:
      there is no form submit, so the browser never validates. A blank, non-numeric or
      negative box has to read as 0 here or it propagates into the arithmetic - a blank
@@ -13,17 +16,30 @@
   var nn = function (id) { var v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
   var STORE = 'bwb-mortgage-v1';
   var taxEdited = false;
+  /* Every main-form box that is remembered between visits. The ranges and the down %
+     box are derived from these, so they are not stored. */
+  var FIELDS = ['price', 'down', 'rate', 'term', 'income', 'debt', 'cash', 'extraMo', 'extraOnce',
+    'taxYr', 'ins', 'pmiR', 'maintR', 'uElec', 'uHeat', 'uWater', 'uTrash', 'uNet'];
 
-  /* ---------- localStorage defaults ---------- */
+  /* ---------- localStorage state ----------
+     One key holds everything this page remembers: the quick-setup answers (income,
+     price, downPct, rate - the original v1 shape, still read on its own), every
+     main-form box under "form", and "skipped" when the visitor declined setup.
+     "Reset my defaults" is the one control that clears it, and it writes nothing
+     back until the next edit. */
   function loadDefaults() {
     try {
       var raw = localStorage.getItem(STORE);
       if (!raw) return null;
-      return JSON.parse(raw);
+      var d = JSON.parse(raw);
+      return d && typeof d === 'object' ? d : null;
     } catch (e) { return null; }
   }
   function saveDefaults(d) {
     try { localStorage.setItem(STORE, JSON.stringify(d)); } catch (e) {}
+  }
+  function clearDefaults() {
+    try { localStorage.removeItem(STORE); } catch (e) {}
   }
   function applyDefaults(d) {
     if (!d) return;
@@ -33,6 +49,29 @@
     if (d.downPct != null && d.price) { $('down').value = Math.round(d.price * d.downPct / 100); }
     syncFromDollars();
   }
+  /* The main form wins over the setup answers: it is the later, more specific edit. */
+  function applyForm(f) {
+    if (!f || typeof f !== 'object') return;
+    FIELDS.forEach(function (id) { if (typeof f[id] === 'string') $(id).value = f[id]; });
+    $('priceR').value = $('price').value;
+    syncFromDollars();
+  }
+  /* Write the whole form, keeping the setup answers and the skip flag beside it.
+     Debounced: a slider drag fires dozens of input events a second. */
+  var saveTimer = null;
+  function persistForm() {
+    var d = loadDefaults() || {}, f = {};
+    FIELDS.forEach(function (id) { f[id] = $(id).value; });
+    d.form = f;
+    d.taxEdited = taxEdited;
+    saveDefaults(d);
+  }
+  function schedulePersist() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persistForm, 300);
+  }
+  // Do not lose an edit made in the last 300 ms before the tab closes.
+  window.addEventListener('pagehide', function () { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; persistForm(); } });
 
   /* ---------- down payment $/% sync (dollars are source of truth) ---------- */
   function syncFromDollars() {
@@ -129,11 +168,11 @@
   /* pct === null means the ratio is undefined, not zero. Without this branch a blank
      income scored 0% on both gauges, turned both pills green and printed the best
      possible verdict - the most misleading output on the page. */
-  function setGauge(fillId, pillId, pctId, pct, t1, t2) {
+  function setGauge(fillId, pillId, pctId, pct, t1, t2, missing) {
     if (pct === null) {
       $(pctId).textContent = '-';
       $(fillId).style.width = '0%';
-      var np = $(pillId); np.textContent = 'NO INCOME'; np.className = 'pill pn';
+      var np = $(pillId); np.textContent = missing || 'NO INCOME'; np.className = 'pill pn';
       return -1;
     }
     $(pctId).textContent = pct.toFixed(0) + '%';
@@ -191,11 +230,15 @@
 
     /* No income means the ratios are undefined, not zero. Passing null makes both gauges
        say so instead of scoring a blank box as the best possible result. */
-    var fe = gMonthly > 0 ? piti / gMonthly * 100 : null, be = gMonthly > 0 ? (piti + debt) / gMonthly * 100 : null;
-    var feL = setGauge('feFill', 'fePill', 'fePct', fe, 28, 33);
-    var beL = setGauge('beFill', 'bePill', 'bePct', be, 36, 43);
+    /* The same holds for a blank or negative price (nn reads both as 0): there is no
+       house, so a payment of tax and insurance alone must not score as Comfortable. */
+    var ok = gMonthly > 0 && price > 0, missing = price > 0 ? 'NO INCOME' : 'NO PRICE';
+    var fe = ok ? piti / gMonthly * 100 : null, be = ok ? (piti + debt) / gMonthly * 100 : null;
+    var feL = setGauge('feFill', 'fePill', 'fePct', fe, 28, 33, missing);
+    var beL = setGauge('beFill', 'bePill', 'bePct', be, 36, 43, missing);
     var worst = Math.max(feL, beL), v = $('verdict');
-    if (worst < 0) { v.className = 'verdict va'; v.textContent = 'Enter your gross annual income to see whether this payment fits.'; }
+    if (worst < 0 && !(price > 0)) { v.className = 'verdict va'; v.textContent = 'Enter a home price to see whether the payment fits.'; }
+    else if (worst < 0) { v.className = 'verdict va'; v.textContent = 'Enter your gross annual income to see whether this payment fits.'; }
     else if (worst === 0) { v.className = 'verdict vg'; v.textContent = 'Comfortable - both ratios are within standard guidelines.'; }
     else if (worst === 1) { v.className = 'verdict va'; v.textContent = 'Tight - approvable, but little slack. Watch utilities and savings.'; }
     else { v.className = 'verdict vr'; v.textContent = 'High - over the comfortable line. Lower price, raise down payment, or cut debt.'; }
@@ -277,7 +320,10 @@
   ['rate', 'term', 'income', 'debt', 'cash', 'extraMo', 'extraOnce', 'ins', 'pmiR', 'maintR',
     'uElec', 'uHeat', 'uWater', 'uTrash', 'uNet'].forEach(function (id) { $(id).addEventListener('input', calc); });
   $('taxYr').addEventListener('input', function () { taxEdited = true; calc(); });
-  $('taxReset').addEventListener('click', function () { taxEdited = false; calc(); });
+  $('taxReset').addEventListener('click', function () { taxEdited = false; calc(); schedulePersist(); });
+  // Remember every main-form edit (the chips set values without an input event).
+  $('calc').addEventListener('input', schedulePersist);
+  Array.prototype.forEach.call(document.querySelectorAll('.qbtn[data-pct]'), function (b) { b.addEventListener('click', schedulePersist); });
   $('printBtn').addEventListener('click', function () { window.print(); });
 
   /* ---------- download a plain-text summary (dependency-free, CSP-safe) ---------- */
@@ -354,36 +400,84 @@
   window.addEventListener('beforeprint', function () { Array.prototype.forEach.call(document.querySelectorAll('details'), function (d) { d.dataset.wo = d.open ? '1' : ''; d.open = true; }); });
   window.addEventListener('afterprint', function () { Array.prototype.forEach.call(document.querySelectorAll('details'), function (d) { d.open = d.dataset.wo === '1'; }); });
 
-  /* ---------- onboarding dialog ---------- */
+  /* ---------- onboarding dialog ----------
+     Two ways in: automatically on a first visit, and from "Reset my defaults". Nothing
+     is cleared until the visitor submits; Escape or the secondary button leaves every
+     saved number where it was. */
   var dlg = $('onboard');
+  // Where focus goes when the dialog closes. The dialog sits at the end of the
+  // page, so without this a first-visit dismissal leaves keyboard focus there.
+  var dlgOpener = null;
+  var dlgReset = false;
+  var OB = { obIncome: 'income', obPrice: 'price', obDownPct: 'downP', obRate: 'rate' };
+  function openSetup(reset, opener) {
+    dlgReset = reset;
+    dlgOpener = opener || null;
+    // Start from what is on screen, so submitting without retyping changes nothing.
+    Object.keys(OB).forEach(function (id) { $(id).value = $(OB[id]).value; $(id).setCustomValidity(''); });
+    $('obSkip').textContent = reset ? 'Cancel' : 'Skip for now';
+    $('obGo').textContent = reset ? 'Reset to these numbers' : 'Start calculating';
+    dlg.showModal();
+  }
+  /* Declining setup on a first visit is remembered, so the dialog does not come back
+     on every load. On the reset path it means "cancel" and must change nothing. */
+  function rememberSkip() {
+    if (dlgReset) return;
+    var d = loadDefaults() || {};
+    d.skipped = true;
+    saveDefaults(d);
+  }
   $('resetDefaults').addEventListener('click', function () {
-    try { localStorage.removeItem(STORE); } catch (e) {}
-    if (dlg && dlg.showModal) dlg.showModal();
+    if (dlg && dlg.showModal) openSetup(true, this);
   });
   if (dlg) {
+    dlg.addEventListener('close', function () {
+      var to = dlgOpener || $('price');
+      dlgOpener = null;
+      if (to) to.focus();
+    });
+    dlg.addEventListener('cancel', rememberSkip);
+    Object.keys(OB).forEach(function (id) { $(id).addEventListener('input', function () { this.setCustomValidity(''); }); });
     $('obForm').addEventListener('submit', function (e) {
-      // method="dialog" closes the dialog; capture + persist first
+      // method="dialog" closes the dialog; validate, then capture + persist first.
+      // The required attributes stop a blank box before this runs; this catches the
+      // rest. A blank down payment used to fall to 0 and save 0% down as the default.
+      function read(id, min, max, msg) {
+        var el = $(id), v = parseFloat(el.value);
+        if (!isFinite(v) || v < min || v > max) { el.setCustomValidity(msg); return null; }
+        return v;
+      }
       var def = {
-        income: +$('obIncome').value || +$('income').value,
-        price: +$('obPrice').value || +$('price').value,
-        downPct: +$('obDownPct').value || 0,
-        rate: +$('obRate').value || +$('rate').value
+        income: read('obIncome', 1, Infinity, 'Enter your yearly household income.'),
+        price: read('obPrice', 1, Infinity, 'Enter a home price above $0.'),
+        downPct: read('obDownPct', 0, 100, 'Enter a down payment from 0 to 100%.'),
+        rate: read('obRate', 0, 100, 'Enter an interest rate from 0 to 100%.')
       };
+      var bad = Object.keys(OB).filter(function (id) { return !$(id).validity.valid; });
+      if (bad.length) { e.preventDefault(); $(bad[0]).reportValidity(); return; }
+      if (dlgReset) {
+        // Start over: forget everything saved and store nothing at all, so a shared
+        // computer keeps no numbers until someone edits the form again. The answers
+        // fill the boxes; every other box goes back to the page default.
+        clearTimeout(saveTimer); saveTimer = null;
+        clearDefaults();
+        FIELDS.forEach(function (id) { $(id).value = $(id).defaultValue; });
+        taxEdited = false;
+        applyDefaults(def); calc();
+        return;
+      }
       saveDefaults(def); applyDefaults(def); calc();
     });
-    $('obSkip').addEventListener('click', function () { dlg.close(); });
+    $('obSkip').addEventListener('click', function () { rememberSkip(); dlg.close(); });
   }
 
   /* ---------- init ---------- */
   var stored = loadDefaults();
-  if (stored) { applyDefaults(stored); }
-  calc();
-  if (!stored && dlg && dlg.showModal) {
-    // prefill the dialog with the current generic values as a starting point
-    $('obIncome').value = $('income').value;
-    $('obPrice').value = $('price').value;
-    $('obDownPct').value = $('downP').value;
-    $('obRate').value = $('rate').value;
-    dlg.showModal();
+  if (stored) {
+    applyDefaults(stored);
+    applyForm(stored.form);
+    taxEdited = stored.taxEdited === true;
   }
+  calc();
+  if (!stored && dlg && dlg.showModal) openSetup(false, null);
 })();
