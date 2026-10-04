@@ -25,7 +25,10 @@ const PRECACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
+      // cache: 'reload' skips the HTTP cache. GitHub Pages serves max-age=600, so a
+      // plain addAll right after a deploy could store the old file under the new
+      // CACHE name and keep it until the next bump.
+      .then((cache) => cache.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' }))))
       .then(() => self.skipWaiting())
   );
 });
