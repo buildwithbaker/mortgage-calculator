@@ -36,6 +36,17 @@
   font-display: swap;
   src: url('fonts/inter-latin-700-normal.woff2') format('woff2');
 }
+/* Metric-matched stand-in shown until Inter arrives. Arial (or its metric twins
+   Arimo / Liberation Sans on Linux) scaled to Inter's width and line box, so the
+   swap to Inter does not rewrap the hero and shift the page (desktop home CLS). */
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial'), local('ArialMT'), local('Arimo'), local('Liberation Sans'), local('Helvetica');
+  size-adjust: 107.4%;
+  ascent-override: 90.2%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+}
 
 /* --- Reset & Base --- */
 *, *::before, *::after {
@@ -55,6 +66,9 @@
   --color-text:       #0F1A2E;
   --color-text-muted: #445063;
   --color-border:     #E1E6EE;
+  /* Form-field edge: 4.04:1 on the white field/card, 3.73:1 on the page bg
+     (WCAG 1.4.11 needs 3:1). --color-border is too faint for a control edge. */
+  --color-field-border: #767F8E;
   --color-on-primary: #FFFFFF;
   --color-footer-bg:  #0F1A2E;
   --color-nav-bg:     rgba(255,255,255,.92);
@@ -71,7 +85,7 @@
   --frame-dot:    #C5CDDA;
   --spring: linear(0,.009,.035 2.1%,.141 4.4%,.723 12.9%,.938 16.7%,1.017,1.077,1.121,1.149 24.3%,1.159,1.163,1.161,1.154 29.9%,1.129 32.8%,1.051 39.6%,1.017 43.1%,.991,.977 51%,.974 53.8%,.975 57.1%,.997 69.8%,1.003 76.9%,1);
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, -apple-system, sans-serif;
 
   --radius:    8px;
   --radius-lg: 14px;
@@ -109,6 +123,7 @@ html[data-theme="dark"] {
   --color-text:       #EDF1F8;
   --color-text-muted: #A2ADC2;
   --color-border:     #28324A;
+  --color-field-border: #6B7894; /* 3.57:1 on the #1A2236 card, 4.07:1 on the bg */
   --color-on-primary: #FFFFFF;
   --color-footer-bg:  #0B1018;
   --color-nav-bg:     rgba(15,22,38,.9);
@@ -160,6 +175,18 @@ a {
 }
 
 a:hover { color: var(--color-primary-dk); }
+
+/* Links inside running text: indigo vs the muted body text is only 1.05:1, so
+   color alone cannot mark them (WCAG 1.4.1). Underline them. Classed links
+   (buttons, cards, chips) keep their own styling. */
+main :is(p, li, dd, td, figcaption, blockquote) a:not([class]) {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .18em;
+}
+main :is(p, li, dd, td, figcaption, blockquote) a:not([class]):hover {
+  text-decoration-thickness: 2px;
+}
 
 /* --- Container --- */
 .container {
@@ -615,7 +642,7 @@ html[data-theme="dark"] .cta-band p { color: #FFFFFF; }
 .form-group textarea,
 .form-group select {
   padding: .65rem .9rem;
-  border: 1.5px solid var(--color-border);
+  border: 1.5px solid var(--color-field-border);
   border-radius: var(--radius);
   font-family: var(--font-sans);
   font-size: .95rem;
@@ -930,6 +957,11 @@ html[data-theme="dark"] .cta-band p { color: #FFFFFF; }
   font-size: .85rem;
   color: var(--color-text-muted);
   margin-top: .25rem;
+}
+
+.form-required-note {
+  font-size: .85rem;
+  color: var(--color-text-muted);
 }
 
 .muted-note-sm {
@@ -1657,5 +1689,6 @@ button:focus-visible,
 }
 .mode-switch button.is-active { background: var(--color-primary-solid); color: #fff; }
 .mode-switch button:hover:not(.is-active) { color: var(--color-primary); }
+.mode-switch button:focus-visible { border-radius: 999px; }
 .mode-caption { font-size: .9rem; color: var(--color-text-muted); margin: 0 0 1.75rem; max-width: 640px; }
 .mode-panel[hidden] { display: none; }

@@ -85,6 +85,57 @@
   try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* private mode */ }
   applyTheme(saved || 'light');
 
+  /* --- Payment strip (phones only) ---
+     Below 760px the results card stacks under the inputs, about a screen below the
+     price box, so a change to the price moved a number nobody could see. This strip
+     mirrors the monthly payment and the front-end ratio at the foot of the screen
+     while the results card is out of view. It only copies text the calculator has
+     already written, so css/ and js/mortgage-calculator.js stay byte-identical to the
+     buildwithbaker copies. aria-hidden: the results card is already a live region. */
+  var results = document.querySelector('.mc .results');
+  var pitiOut = document.getElementById('piti');
+  var feOut = document.getElementById('fePct');
+  var fePill = document.getElementById('fePill');
+  if (results && pitiOut && feOut && fePill) {
+    var strip = document.createElement('div');
+    strip.className = 'mc-peek';
+    strip.setAttribute('aria-hidden', 'true');
+    strip.hidden = true;
+    var stripPay = document.createElement('span');
+    stripPay.className = 'mc-peek-pay';
+    var stripRatio = document.createElement('span');
+    stripRatio.className = 'mc-peek-ratio';
+    strip.appendChild(stripPay);
+    strip.appendChild(stripRatio);
+    document.body.appendChild(strip);
+
+    var fillStrip = function () {
+      stripPay.textContent = pitiOut.textContent + '/mo';
+      stripRatio.textContent = 'Front-end ' + feOut.textContent + ' ' + fePill.textContent;
+    };
+    fillStrip();
+    var watch = new MutationObserver(fillStrip);
+    [pitiOut, feOut, fePill].forEach(function (el) {
+      watch.observe(el, { childList: true, characterData: true, subtree: true });
+    });
+
+    var narrow = window.matchMedia('(max-width: 760px)');
+    var resultsVisible = true;
+    var setStrip = function () {
+      var show = narrow.matches && !resultsVisible;
+      strip.hidden = !show;
+      document.body.classList.toggle('has-peek', show);
+    };
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        resultsVisible = entries[0].isIntersecting;
+        setStrip();
+      }).observe(results);
+    }
+    if (narrow.addEventListener) narrow.addEventListener('change', setStrip);
+    setStrip();
+  }
+
   /* --- Offline signal --- */
   window.addEventListener('offline', function () {
     say('Offline - the calculator keeps working.');

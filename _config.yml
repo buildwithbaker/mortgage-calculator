@@ -1,0 +1,7 @@
+# GitHub Pages builds this repo with Jekyll (there is no .nojekyll). Jekyll copies
+# every file in the branch to the live site unless it is listed here, so these
+# repo-only files were being served at mortgage.buildwithbaker.io/README.md etc.
+exclude:
+  - README.md
+  - CLAUDE.md
+  - LICENSE

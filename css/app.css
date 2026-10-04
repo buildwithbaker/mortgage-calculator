@@ -46,10 +46,47 @@
   display: none;
 }
 
+/* Phone payment strip (js/app.js). Shown only below 760px while the results
+   card is off screen. */
+.mc-peek {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 150;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: .6rem 1rem calc(.6rem + env(safe-area-inset-bottom));
+  background: var(--color-primary-solid, #2B4A8B);
+  color: var(--color-on-primary, #fff);
+  font-size: .9rem;
+  box-shadow: 0 -2px 10px rgba(20, 30, 50, .18);
+}
+
+.mc-peek[hidden] {
+  display: none;
+}
+
+.mc-peek-pay {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+body.has-peek {
+  padding-bottom: 3.25rem;
+}
+
+body.has-peek .app-toast {
+  bottom: 4rem;
+}
+
 @media print {
   .site-nav,
   .site-footer,
-  .app-toast {
+  .app-toast,
+  .mc-peek {
     display: none !important;
   }
 }
