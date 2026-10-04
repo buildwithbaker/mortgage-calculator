@@ -25,7 +25,8 @@
      One key holds everything this page remembers: the quick-setup answers (income,
      price, downPct, rate - the original v1 shape, still read on its own), every
      main-form box under "form", and "skipped" when the visitor declined setup.
-     "Reset my defaults" is the one control that clears it. */
+     "Reset my defaults" is the one control that clears it, and it writes nothing
+     back until the next edit. */
   function loadDefaults() {
     try {
       var raw = localStorage.getItem(STORE);
@@ -455,12 +456,15 @@
       var bad = Object.keys(OB).filter(function (id) { return !$(id).validity.valid; });
       if (bad.length) { e.preventDefault(); $(bad[0]).reportValidity(); return; }
       if (dlgReset) {
-        // Start over: forget everything saved, and put the boxes setup does not ask
-        // about back to the page defaults.
+        // Start over: forget everything saved and store nothing at all, so a shared
+        // computer keeps no numbers until someone edits the form again. The answers
+        // fill the boxes; every other box goes back to the page default.
         clearTimeout(saveTimer); saveTimer = null;
         clearDefaults();
         FIELDS.forEach(function (id) { $(id).value = $(id).defaultValue; });
         taxEdited = false;
+        applyDefaults(def); calc();
+        return;
       }
       saveDefaults(def); applyDefaults(def); calc();
     });
